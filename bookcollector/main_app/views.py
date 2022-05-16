@@ -1,22 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from .models import Book
 
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-class Book:  # Note that parens are optional if not inheriting from another class
-    def __init__(self, title, author, genre, cost):
-        self.title = title
-        self.author = author
-        self.genre = genre
-        self.cost = cost
 
-books = [
-    Book('The Alchemist', 'Paulo Coelho', 'Adventure fiction', 50),
-    Book('The Da Vinci Code', 'Dan Brown', 'Conspiracy fiction', 80),
-    Book('Courage', 'Osho', 'psychology', 40)
-]
 
     
 # Create your views here.
@@ -40,10 +30,20 @@ def about(request):
 def books_index(request):
     """
 
-    cats index pages
+    books index pages
     http://localhost:8000/books/
 
     """  
     logging.info('calling books_index')
+    books = Book.objects.all()
 
     return render(request, 'books/index.html', {'books' : books})
+
+def books_detail(request, book_id):
+    """
+    book details page
+    http://localhost:8000/books/1  
+    """     
+    logging.info('calling book_details')
+    book = Book.objects.get(id=book_id)
+    return render(request, 'books/detail.html', {'book':book})
