@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Book
+from django.urls import reverse
 
 
 import logging
@@ -22,7 +24,7 @@ def home(request):
 def about(request):
     """
     about view
-    http://localhostt:8000/about/
+    http://localhost:8000/about/
 
     """ 
     return render(request, 'about.html') 
@@ -47,3 +49,22 @@ def books_detail(request, book_id):
     logging.info('calling book_details')
     book = Book.objects.get(id=book_id)
     return render(request, 'books/detail.html', {'book':book})
+
+class BookCreate(CreateView):
+    model = Book
+    fields = '__all__'
+
+    def get_success_url(self, **kwargs):
+        return reverse('detail', args=(self.object.id,))    
+
+class BookUpdate(UpdateView):
+    model = Book
+    fields = ['cost']     
+
+    success_url = "/books/"   
+
+class BookDelete(DeleteView):
+    model = Book
+    
+
+    success_url = "/books/"     
