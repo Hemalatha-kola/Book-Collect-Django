@@ -3,20 +3,91 @@
 
 <h1>Book Details</h1>
 
-<div class="card">
-  <div class="card-content">
-    <span class="card-title">{{ book.title }}</span>
-    <p>Author: {{ book.author }}</p>
-    <p>Genre: {{ book.genre }}</p>
-   
-      <p>Cost: {{ book.cost }}</p>
-    
-      
+<div class="row">
+  <div class="col s6">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">{{ book.title }}</span>
+        <p>Author: {{ book.author }}</p>
+        <p>Genre: {{ book.genre }}</p>
+        <p>Cost: {{ book.cost }}</p>
+      </div>
+      <div class="card-action">
+        <a href="{% url 'books_update' book.id %}">Edit</a>
+        <a href="{% url 'books_delete' book.id %}">Delete</a>
+      </div>
+    </div>
   </div>
-  <div class="card-action">
-    <a href="{% url 'books_update' book.id %}">Edit</a>
-    <a href="{% url 'books_delete' book.id %}">Delete</a>
+  <div class="col s6">
+    <form action="{% url 'add_bookmark' book.id %}" method="post">
+      {% csrf_token %}
+      {{ bookmark_form.as_p }}
+      <input type="submit" class="btn" value="Add Bookmark">
+    </form>
+    <table class="striped">
+      <thead>
+        <tr><th>Date</th><th>Page Number</th></tr>
+      </thead>
+      <tbody>
+        {% for bookmark in book.bookmark_set.all %}
+          <tr>
+            <td>{{bookmark.date}}</td>
+            <td>{{bookmark.pagenumber}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
-
+<hr>
+<div class="row">
+  <div class="col s6">
+    <h3>{{ book.title }}'s Readers</h3>
+    {% if book.readers.count %}
+      {% for reader in book.readers.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+                {{ reader.name }}
+            </span>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>No Readers :(</h5>
+    {% endif %}
+  </div>
+  <!-- Available readers will come after this line -->
+  <div class="col s6">
+    <h3>Available Readers</h3>
+    {% if readers.count %}
+      {% for reader in readers.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              {{ reader.name }}
+            </span>
+          </div>
+          <div class="card-action">
+            <form action="{% url 'assoc_reader' book.id reader.id %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn">Add</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>{{book.name}} Already Has All Readers Available</h5>
+    {% endif %}
+  
+</div>
+<script>
+  const dateEl = document.getElementById('id_date');
+  M.Datepicker.init(dateEl, {
+    format: 'yyyy-mm-dd',
+    defaultDate: new Date(),
+    setDefaultDate: true,
+    autoClose: true
+  });
+</script>
 {% endblock %}

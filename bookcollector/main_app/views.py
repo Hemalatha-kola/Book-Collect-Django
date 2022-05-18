@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import Book
+from .models import Book, Reader
 from django.urls import reverse
+from .forms import BookmarkForm
 
 
 import logging
@@ -48,11 +49,14 @@ def books_detail(request, book_id):
     """     
     logging.info('calling book_details')
     book = Book.objects.get(id=book_id)
-    return render(request, 'books/detail.html', {'book':book})
+    readers_book_doesnt_have = Reader.objects.exclude(id__in = book.readers.all().values_list('id'))
+    bookmark_form = BookmarkForm()
+    return render(request, 'books/detail.html', {'book':book, 'bookmark_form' : bookmark_form, 'readers' : readers_book_doesnt_have})
 
 class BookCreate(CreateView):
     model = Book
-    fields = '__all__'
+    #fields = '__all__'
+    fields = ['title', 'author', 'genre', 'cost']
 
     def get_success_url(self, **kwargs):
         return reverse('detail', args=(self.object.id,))    
@@ -67,4 +71,22 @@ class BookDelete(DeleteView):
     model = Book
     
 
-    success_url = "/books/"     
+    success_url = "/books/"    
+
+
+def add_bookmark(request, book_id): 
+    form = BookmarkForm(request.POST)
+    # validate the form
+    if form.is_valid():
+    # don't save the form to the db until it
+    # has the cat_id assigned
+        new_bookmark = form.save(commit=False)
+        new_bookmark.book_id = book_id
+        new_bookmark.save()
+    return redirect('detail', book_id=book_id)
+
+def assoc_reader(request, book_id, reader_id):
+  # Note that you can pass a toy's id instead of the whole toy object
+    Book.objects.get(id=book_id).readers.add(reader_id)
+    return redirect('detail', book_id=book_id)    
+
