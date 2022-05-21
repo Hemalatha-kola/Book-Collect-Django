@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Reader List</h1>
+
+{% for reader in reader_list %}
+  <a href="{% url 'readers_detail' reader.id %}">
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title">{{ reader.name }}</span>
+        </div>
+    </div>
+  </a>
+{% endfor %}
+
+{% endblock %}
