@@ -1,7 +1,10 @@
+import os
+import uuid
+import boto3
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import Book, Reader
+from .models import Book, Reader, Photo
 from django.urls import reverse
 from .forms import BookmarkForm
 
@@ -52,6 +55,21 @@ def books_detail(request, book_id):
     readers_book_doesnt_have = Reader.objects.exclude(id__in = book.readers.all().values_list('id'))
     bookmark_form = BookmarkForm()
     return render(request, 'books/detail.html', {'book':book, 'bookmark_form' : bookmark_form, 'readers' : readers_book_doesnt_have})
+
+def add_photo(request, book_id):
+    photo_file = request.FILES.get('photo-file', None)
+    if photo_file:
+        s3 = boto3.client('s3')
+        key = uuid.uuid4().hex[:6] + photo_file.name[photo_file.name.rfind('.'):]
+
+        try:
+            bucket = os.environ['S3_BUCKET']
+            s3.upload_fileobj(photo_file, bucket, key)
+            url = f"{os.environ['S3_BASE_URL']}{bucket}/{key}"
+            Photo.objects.create(url=url, book_id=book_id)
+        except:
+            print('An error occured while uploading to s3')  
+    return redirect("detail", book_id=book_id)
 
 class BookCreate(CreateView):
     model = Book
